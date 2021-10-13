@@ -37,5 +37,16 @@ def demucsServer():
                 os.system(command)
                 return '''<h1>SUCCESS</h1>'''#redirect(request.url)#+randUrl+'/')
     #if request.method == 'GET':
-            
+@app.route('/test')
+def test():
+    return '''<form method="post" action="/" enctype="multipart/form-data">
+    <dl>
+		<p>
+			<input type="file" name="file" autocomplete="off" required>
+		</p>
+    </dl>
+    <p>
+		<input type="submit" value="Submit">
+	</p>
+</form>'''
     return ''
