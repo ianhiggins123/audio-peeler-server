@@ -8,7 +8,7 @@ import string
 
 
 
-UPLOAD_FOLDER = Path('/root/demucs/upload_files/')
+UPLOAD_FOLDER = Path('upload_files/')
 ALLOWED_EXTENSIONS = {'mp3', 'mp4', 'flac'}
 
 
@@ -32,7 +32,7 @@ def demucsServer():
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(UPLOAD_FOLDER, filename))
-                filePath = '/root/demucs/upload_files/' + filename
+                filePath = 'upload_files/' + filename
                 command = "python3 -m demucs.separate -d cpu " + filePath
                 os.system(command)
                 return '''<h1>SUCCESS</h1>'''#redirect(request.url)#+randUrl+'/')

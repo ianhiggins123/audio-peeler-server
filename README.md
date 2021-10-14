@@ -10,3 +10,10 @@ Due to file size, dependencies cannot be stored in this repository.  Make sure t
 - pip install flask
 - pip3 install demucs
 
+## Running
+
+To run the program, first set your flask app's path using this command in terminal:
+- export FLASK_APP=audioFileServer.py
+
+Then we run it facing externally with this command:
+- flask run --host=0.0.0.0
