@@ -18,9 +18,9 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/', methods=['POST', 'GET'])
+@app.route('/', methods=['POST', 'OPTIONS'])
 def demucsServer():
-    if request.method == 'POST':
+    if request.method == 'OPTIONS' or 'POST':
             if 'file' not in request.files:
                 flash('No file part')
                 return redirect(request.url)
@@ -38,8 +38,9 @@ def demucsServer():
                 command = "python3 -m demucs.separate -d cpu " + filePath + filename + " --out=" + filePath
                 os.system(command)
                 returnUrl = 'http://172.105.151.238:5000/uploaded_files/' + randUrl +'/' + filename
-                returnHTML = '''<p>Go to <a href=''' + returnUrl + '''>this</a> link to download your split files'''
-                return returnHTML #redirect(request.url)#+randUrl+'/')
+                #returnHTML = '''<p>Go to <a href=''' + returnUrl + '''>this</a> link to download your split files'''
+                return returnUrl
+                #return returnHTML #redirect(request.url)#+randUrl+'/')
 
 @app.route('/uploaded_files/<returnURL>/<returnSongName>', methods=['GET', 'POST'])
 def getFile(returnURL, returnSongName):
