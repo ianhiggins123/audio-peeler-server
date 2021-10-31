@@ -8,7 +8,6 @@ import string
 import shutil
 
 
-
 UPLOAD_FOLDER = 'uploaded_files/'
 ALLOWED_EXTENSIONS = {'mp3', 'mp4', 'flac'}
 
@@ -39,6 +38,7 @@ def demucsServer():
                 os.system(command)
                 returnUrl = 'http://172.105.151.238:5000/uploaded_files/' + randUrl +'/' + filename
                 #returnHTML = '''<p>Go to <a href=''' + returnUrl + '''>this</a> link to download your split files'''
+                #return redirect(returnUrl)
                 return returnUrl
                 #return returnHTML #redirect(request.url)#+randUrl+'/')
 
@@ -57,6 +57,35 @@ def getFile(returnURL, returnSongName):
     except FileNotFoundError:
         abort(404)
 
+@app.route('/urlDownload', methods=['POST', 'OPTIONS'])
+def urlDownload():
+    if request.method == 'OPTIONS' or 'POST':
+        letters = string.hexdigits
+        randUrl = ( ''.join(random.choice(letters) for i in range (16)))
+        if request.form['soundcloudUrl']:
+            soundcloudSongUrl = request.form['soundcloudUrl']
+            soundcloudCommand = "sc-dl -u " + soundcloudSongUrl + " --dir uploaded_files/" + randUrl + "/"
+            filePath = UPLOAD_FOLDER + randUrl + '/'
+            os.makedirs(filePath)
+            os.system(soundcloudCommand)
+            soundcloudSongPath = os.listdir(UPLOAD_FOLDER + randUrl + "/")[0]            
+            soundcloudDemucs = "python3 -m demucs.separate -d cpu " + filePath + "\"" + soundcloudSongPath + "\" --out=" + UPLOAD_FOLDER + randUrl + "/"
+            os.system(soundcloudDemucs)
+            soundcloudReturnUrl = 'http://172.105.151.238:5000/uploaded_files/' + randUrl + '/' + soundcloudSongPath
+            return soundcloudReturnUrl
+        if request.form['youtubeUrl']:
+            youtubeSongUrl = request.form['youtubeUrl']
+            songID = youtubeSongUrl.replace('https://www.youtube.com/watch?v=', '')
+            youtubeCommand = "youtube-dl -x --audio-format mp3 " + youtubeSongUrl + " -o  './uploaded_files/" + randUrl + "/%(id)s.mp3' --force-ipv4 --rm-cache-dir"
+            os.system(youtubeCommand)
+            youtubePath = UPLOAD_FOLDER + randUrl + '/'
+            youtubeDemucs = "python3 -m demucs.separate -d cpu " + youtubePath + songID + ".mp3 --out=" + youtubePath
+            os.system(youtubeDemucs)
+            youtubeReturnUrl = 'http://172.105.151.238:5000/uploaded_files/' + randUrl + '/' + songID
+            return youtubeReturnUrl
+        
+        #if request.form['spotifyUrl']:
+
 
 @app.route('/test')
 def test():
@@ -71,4 +100,30 @@ def test():
 	</p>
 </form>'''
     
+
+@app.route('/urlDownloadTest')
+def urlDownloadTest():
+    return '''<form method="post" action="/urlDownload" enctype="multipart/form-data">
+    <dl>
+        <h1>Note: Don't do more than one submit at once! </h1>
+        <dt>Youtube</dt>
+        <dd>
+            Post your Youtube URL: <input type="text" name="youtubeUrl" autocomplete="off">
+        </dd>
+
+        <dt>Soundcloud</dt>
+        <dd>
+            Post your Soundcloud URL: <input type="text" name="soundcloudUrl" autocomplete="off">
+        </dd>
+        <dt>Spotify</dt>
+        <dd>
+            Post your Spotify: <input type="text" name="spotifyUrl" autocomplete="off">
+        </dd>
+        
+    </dl>
+    <p>
+        <input type="submit" value="Submit">
+    </p>
+</form>'''
+
     return ''
