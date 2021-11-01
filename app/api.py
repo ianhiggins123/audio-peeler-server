@@ -34,10 +34,9 @@ def demucsServer():
                 filePath = UPLOAD_FOLDER + randUrl + '/'
                 os.makedirs(filePath)
                 file.save(os.path.join(filePath, filename))
-                command = "python3 -m demucs.separate -d cpu " + filePath + filename + " --out=" + filePath
+                command = "sudo python3 -m demucs.separate -d cpu " + filePath + filename + " --out=" + filePath
                 os.system(command)
-                returnUrl = 'http://172.105.151.238:5000/uploaded_files/' + randUrl +'/' + filename
-                #returnHTML = '''<p>Go to <a href=''' + returnUrl + '''>this</a> link to download your split files'''
+                returnUrl = 'https://audio-peeler-server.com/uploaded_files/' + randUrl +'/' + filename
                 #return redirect(returnUrl)
                 return returnUrl
                 #return returnHTML #redirect(request.url)#+randUrl+'/')
@@ -48,7 +47,6 @@ def getFile(returnURL, returnSongName):
     returnFilePath = UPLOAD_FOLDER + returnURL + '/' + 'demucs_quantized/' + returnFile
     shutil.make_archive(UPLOAD_FOLDER + returnURL + '/' + returnFile, 'zip', returnFilePath)
     currDir = os.getcwd()
-    print(currDir)
     readyToSend = currDir + '/' + UPLOAD_FOLDER + returnURL + '/'
     returnAsZip = returnFile + '.zip'
    
@@ -64,14 +62,14 @@ def urlDownload():
         randUrl = ( ''.join(random.choice(letters) for i in range (16)))
         if request.form['soundcloudUrl']:
             soundcloudSongUrl = request.form['soundcloudUrl']
-            soundcloudCommand = "sc-dl -u " + soundcloudSongUrl + " --dir uploaded_files/" + randUrl + "/"
             filePath = UPLOAD_FOLDER + randUrl + '/'
             os.makedirs(filePath)
+            soundcloudCommand = "sc-dl -u " + soundcloudSongUrl + " --dir uploaded_files/" + randUrl + "/"
             os.system(soundcloudCommand)
             soundcloudSongPath = os.listdir(UPLOAD_FOLDER + randUrl + "/")[0]            
-            soundcloudDemucs = "python3 -m demucs.separate -d cpu " + filePath + "\"" + soundcloudSongPath + "\" --out=" + UPLOAD_FOLDER + randUrl + "/"
+            soundcloudDemucs = "sudo python3 -m demucs.separate -d cpu " + filePath + "\"" + soundcloudSongPath + "\" --out=" + UPLOAD_FOLDER + randUrl + "/"
             os.system(soundcloudDemucs)
-            soundcloudReturnUrl = 'http://172.105.151.238:5000/uploaded_files/' + randUrl + '/' + soundcloudSongPath
+            soundcloudReturnUrl = 'https://audio-peeler-server.com/uploaded_files/' + randUrl + '/' + soundcloudSongPath
             return soundcloudReturnUrl
         if request.form['youtubeUrl']:
             youtubeSongUrl = request.form['youtubeUrl']
@@ -79,9 +77,9 @@ def urlDownload():
             youtubeCommand = "youtube-dl -x --audio-format mp3 " + youtubeSongUrl + " -o  './uploaded_files/" + randUrl + "/%(id)s.mp3' --force-ipv4 --rm-cache-dir"
             os.system(youtubeCommand)
             youtubePath = UPLOAD_FOLDER + randUrl + '/'
-            youtubeDemucs = "python3 -m demucs.separate -d cpu " + youtubePath + songID + ".mp3 --out=" + youtubePath
+            youtubeDemucs = "sudo python3 -m demucs.separate -d cpu " + youtubePath + songID + ".mp3 --out=" + youtubePath
             os.system(youtubeDemucs)
-            youtubeReturnUrl = 'http://172.105.151.238:5000/uploaded_files/' + randUrl + '/' + songID
+            youtubeReturnUrl = 'https://audio-peeler-server.com/uploaded_files/' + randUrl + '/' + songID
             return youtubeReturnUrl
         
         #if request.form['spotifyUrl']:
