@@ -14,11 +14,14 @@ ALLOWED_EXTENSIONS = {'mp3', 'mp4', 'flac'}
 
 
 def allowed_file(filename):
+"""Sets allowed extensions"""
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/', methods=['POST', 'OPTIONS'])
+"""This is the main URL for receiving audio files.  This is the basic function that receives  a file from the home page of the front-end of the app"""
 def demucsServer():
+"""If file is usable, this function generates a path for the file to be stored on the server, saves the file in that directory and then runs demucs on the file.  After that, it stores the zip file in a directory under where the sent file is stored.  This function returns a URL from which a GET request will return the .zip file."""
     if request.method == 'OPTIONS' or 'POST':
             if 'file' not in request.files:
                 flash('No file part')
@@ -42,7 +45,9 @@ def demucsServer():
                 #return returnHTML #redirect(request.url)#+randUrl+'/')
 
 @app.route('/uploaded_files/<returnURL>/<returnSongName>', methods=['GET', 'POST'])
+"""This is a dynamic URL that will return the .zip file created previously in a POST request.  The 'returnURL' and 'returnSongName' parameters are used to locate the file on the demucs server."""
 def getFile(returnURL, returnSongName):
+"""This function finds the requested song and returns the .zip file containing the song's 4 equalized tracks"""
     returnFile = Path(returnSongName).stem
     returnFilePath = UPLOAD_FOLDER + returnURL + '/' + 'demucs_quantized/' + returnFile
     shutil.make_archive(UPLOAD_FOLDER + returnURL + '/' + returnFile, 'zip', returnFilePath)
@@ -56,7 +61,9 @@ def getFile(returnURL, returnSongName):
         abort(404)
 
 @app.route('/urlDownload', methods=['POST', 'OPTIONS'])
+"""This is the URL used for receiving URLs from the designated 3rd Party applications (Youtube, Soundcloud and Spotify), pulling a usable song from those pages and then running demucs on the audio files"""
 def urlDownload():
+"""This function first checks for the type of URL sent (request.form['{type}']), runs the appropriate URL-to-mp3 function, and then runs demucs on it.  It functions almost identically to the demucsServer function."""
     if request.method == 'OPTIONS' or 'POST':
         letters = string.hexdigits
         randUrl = ( ''.join(random.choice(letters) for i in range (16)))
@@ -86,6 +93,7 @@ def urlDownload():
 
 
 @app.route('/test')
+"""This is a URL for testing the demucsServer function.  It returns a basic HTML form from which a file can be uploaded and submitted to theh server."""
 def test():
     return '''<form method="post" action="/" enctype="multipart/form-data">
     <dl>
@@ -100,6 +108,7 @@ def test():
     
 
 @app.route('/urlDownloadTest')
+"""This is a URL for testing the urlDownload function.  It returns three basic forms from which the respective 3rd Party Web URLs may be submitted to the server."""
 def urlDownloadTest():
     return '''<form method="post" action="/urlDownload" enctype="multipart/form-data">
     <dl>
