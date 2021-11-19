@@ -6,7 +6,7 @@ import os
 import random
 import string
 import shutil
-
+import subprocess
 
 UPLOAD_FOLDER = 'uploaded_files/'
 ALLOWED_EXTENSIONS = {'mp3', 'mp4', 'flac'}
@@ -72,18 +72,25 @@ def urlDownload():
     if request.method == 'OPTIONS' or 'POST':
         letters = string.hexdigits
         randUrl = ( ''.join(random.choice(letters) for i in range (16)))
-        if request.form['soundcloudUrl']:
-            soundcloudSongUrl = request.form['soundcloudUrl']
-            filePath = UPLOAD_FOLDER + randUrl + '/'
-            os.makedirs(filePath)
-            soundcloudCommand = "sc-dl -u " + soundcloudSongUrl + " --dir uploaded_files/" + randUrl + "/"
-            os.system(soundcloudCommand)
-            soundcloudSongPath = os.listdir(UPLOAD_FOLDER + randUrl + "/")[0]            
-            soundcloudDemucs = "sudo python3 -m demucs.separate -d cpu " + filePath + "\"" + soundcloudSongPath + "\" --out=" + UPLOAD_FOLDER + randUrl + "/"
-            os.system(soundcloudDemucs)
-            soundcloudReturnUrl = 'https://audio-peeler-server.com/uploaded_files/' + randUrl + '/' + soundcloudSongPath
-            return soundcloudReturnUrl
+        #if request.form['soundcloudUrl']:
+        #    soundcloudSongUrl = request.form['soundcloudUrl']
+        #    filePath = UPLOAD_FOLDER + randUrl + '/'
+        #    os.makedirs(filePath)
+        #    if os.path.exists(filePath):
+        #        soundcloudCommand = "sudo sc-dl -u '" + soundcloudSongUrl + "' --dir " + filePath
+        #        scResult = subprocess.call(soundcloudCommand, shell=True)
+        #        #if scResult is 0:
+        #        #    return """Apologies; Song cannot be downloaded."""
+        #        soundcloudSongPath = os.listdir(filePath)[0]
+        #    else:
+        #        print("Not good!")
+        #    soundcloudDemucs = "sudo python3 -m demucs.separate -d cpu " + filePath + "\"" + soundcloudSongPath + "\" --out=" + UPLOAD_FOLDER + randUrl + "/"
+        #    os.system(soundcloudDemucs)
+        #    soundcloudReturnUrl = 'https://audio-peeler-server.com/uploaded_files/' + randUrl + '/' + soundcloudSongPath
+        #    return soundcloudReturnUrl
+        #    #return request.form['soundcloudUrl']
         if request.form['youtubeUrl']:
+            print(request.form['youtubeUrl'])
             youtubeSongUrl = request.form['youtubeUrl']
             songID = youtubeSongUrl.replace('https://www.youtube.com/watch?v=', '')
             youtubeCommand = "youtube-dl -x --audio-format mp3 " + youtubeSongUrl + " -o  './uploaded_files/" + randUrl + "/%(id)s.mp3' --force-ipv4 --rm-cache-dir"
@@ -117,14 +124,13 @@ def urlDownloadTest():
     return '''<form method="post" action="/urlDownload" enctype="multipart/form-data">
     <dl>
         <h1>Note: Don't do more than one submit at once! </h1>
-        <dt>Youtube</dt>
-        <dd>
-            Post your Youtube URL: <input type="text" name="youtubeUrl" autocomplete="off">
-        </dd>
-
         <dt>Soundcloud</dt>
         <dd>
             Post your Soundcloud URL: <input type="text" name="soundcloudUrl" autocomplete="off">
+        </dd>
+        <dt>Youtube</dt>
+        <dd>
+            Post your Youtube URL: <input type="text" name="youtubeUrl" autocomplete="off">
         </dd>
         <dt>Spotify</dt>
         <dd>
