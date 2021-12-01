@@ -9,7 +9,7 @@ import shutil
 import subprocess
 
 UPLOAD_FOLDER = 'uploaded_files/'
-ALLOWED_EXTENSIONS = {'mp3', 'mp4', 'flac'}
+ALLOWED_EXTENSIONS = {'mp3', 'mp4', 'flac', 'ogg'}
 
 
 
@@ -39,8 +39,11 @@ def demucsServer():
                 filePath = UPLOAD_FOLDER + randUrl + '/'
                 os.makedirs(filePath)
                 file.save(os.path.join(filePath, filename))
+                outputFilePath = filePath + 'ping.txt'
+                outputFile = open(outputFilePath, 'w')
                 command = "sudo python3 -m demucs.separate -d cpu " + filePath + filename + " --out=" + filePath
-                os.system(command)
+                #os.system(command)
+                subprocess.Popen(command, shell=True, stderr=outputFile, close_fds=True)
                 returnUrl = 'https://audio-peeler-server.com/uploaded_files/' + randUrl +'/' + filename
                 #return redirect(returnUrl)
                 return returnUrl
@@ -52,16 +55,26 @@ def demucsServer():
 def getFile(returnURL, returnSongName):
     """This function finds the requested song and returns the .zip file containing the song's 4 equalized tracks"""
 
-    returnFile = Path(returnSongName).stem
-    returnFilePath = UPLOAD_FOLDER + returnURL + '/' + 'demucs_quantized/' + returnFile
-    shutil.make_archive(UPLOAD_FOLDER + returnURL + '/' + returnFile, 'zip', returnFilePath)
-    currDir = os.getcwd()
-    readyToSend = currDir + '/' + UPLOAD_FOLDER + returnURL + '/'
-    returnAsZip = returnFile + '.zip'
-    try:
-        return send_from_directory(directory=readyToSend, path=returnAsZip, as_attachment=True)
-    except FileNotFoundError:
-        abort(404)
+
+    progressFilePath = UPLOAD_FOLDER + returnURL + '/' + 'ping.txt'
+    with open(progressFilePath, 'r+', encoding='utf-8') as f:
+        progressLine = f.readlines()[-1]
+    progressNumber = progressLine.partition("%")[0]
+    f.close
+    print(progressNumber)
+    if int(progressNumber) == 100: 
+        returnFile = Path(returnSongName).stem
+        returnFilePath = UPLOAD_FOLDER + returnURL + '/' + 'demucs_quantized/' + returnFile
+        shutil.make_archive(UPLOAD_FOLDER + returnURL + '/' + returnFile, 'zip', returnFilePath)
+        currDir = os.getcwd()
+        readyToSend = currDir + '/' + UPLOAD_FOLDER + returnURL + '/'
+        returnAsZip = returnFile + '.zip'
+        try:
+            return send_from_directory(directory=readyToSend, path=returnAsZip, as_attachment=True)
+        except FileNotFoundError:
+            abort(404)
+    else:
+        return progressLine   
 
 @app.route('/urlDownload', methods=['POST', 'OPTIONS'])
 #This is the URL used for receiving URLs from the designated 3rd Party applications (Youtube, Soundcloud and Spotify), pulling a usable song from those pages and then running demucs on the audio files.
